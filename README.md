@@ -1,10 +1,10 @@
 # bot-kiri
 
-**Kiri** is a multipurpose Discord bot built with utility commands to enhance server engagement and coordination.
+**Kiri** is a multipurpose Discord bot built with utility commands to improve server experience amongst friends.
 
 ## ✨ Features
 
-- `/party [max_players]` – Starts an interaction box where users can join a party. Once `max_players` have joined, the bot notifies all participants.
+- **`/party [max_players]`** – Starts an interaction box where users can join a party. Once **`max_players`** have joined, the bot notifies all participants.
 
 ## 🚀 Installation
 
