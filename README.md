@@ -5,15 +5,16 @@
 ## ✨ Features
 
 - `/party [max_players]` – Starts an interaction box where users can join a party. Once `max_players` have joined, the bot notifies all participants.
-*(More commands to be documented.)*
 
-## 🚀 Prerequisites
+## 🚀 Installation
+
+### Prerequisites
 
 - Node.js 
 - Discord Bot Token
 - A Discord server where you have permission to add bots
 
-### Installation
+### To run it locally:
 
 1. Clone this repository:
 
@@ -40,6 +41,10 @@
    ```bash
    node ./app.js
    ```
+
+## 🔎 Feedbacks
+
+Feedbacks on bugs or suggestions to improve the bot's commands/features are greatly appreciated. 🙏
 
 ## 📄 License
 
