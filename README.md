@@ -29,7 +29,7 @@
    npm install
    ```
 
-3. Create a `.env` file and add your bot token:
+3. Create a `.env` file inside the `app.js` directory and fill in the fields:
 
    ```env
    DISCORD_TOKEN="your_bot_token"

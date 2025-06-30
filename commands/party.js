@@ -1,8 +1,4 @@
-import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-} from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
 
 const partyTables = new Map();         // channelId -> Map(userId -> displayName)
 const partyPromptMessages = new Map(); // channelId -> message object
@@ -15,18 +11,18 @@ async function callCommand(interaction) {
     const partyTable = new Map();
     partyTables.set(channelId, partyTable);
 
+    const embed = {
+        title: "✉️ Join Party",
+        description: `Click to participate in the party!\n\n**Participants (0/${maxPlayers}):**\n_None yet_`,
+        color: 0x3399ff,
+    };
+
     const row = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
             .setCustomId("join_party")
             .setLabel("👍 Join Party")
             .setStyle(ButtonStyle.Success)
     );
-
-    const embed = {
-        title: "✉️ Join Party",
-        description: `Click to participate!\n\n**Participants (0/${maxPlayers}):**\n_None yet_`,
-        color: 0x3399ff,
-    };
 
     const sent = await interaction.reply({
         embeds: [embed],

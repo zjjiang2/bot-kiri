@@ -7,6 +7,7 @@ import {
   SlashCommandBuilder,
 } from "discord.js";
 import partyCommand from './commands/party.js';
+import teamsCommand from './commands/teams.js';
 import dotenv from "dotenv";
 
 dotenv.config({ path: "./.env" });
@@ -18,9 +19,15 @@ const commands = [
         .setDescription("Invite people to hop on a game")
         .addIntegerOption((option) => option
             .setName("max_players")
-            .setDescription("Maximum number of players")
-            .setRequired(false)
-        ),
+            .setDescription("Maximum number of players (default = 5)")
+            .setRequired(false)),
+    new SlashCommandBuilder()
+        .setName("teams")
+        .setDescription("Join the team builder")
+        .addIntegerOption((option) => option
+            .setName("team_count")
+            .setDescription("Number of teams generated (default = 2)")
+            .setRequired(false)),
 ].map((command) => command.toJSON());
 
 // Create new REST client using Discord API version 10
@@ -61,19 +68,37 @@ client.on("interactionCreate", async (interaction) => {
     const { commandName } = interaction;
     if (!interaction.isChatInputCommand()) return;
 
-    if (commandName === "party") {
-        partyCommand.callCommand(interaction);
+    switch (commandName) {
+        case "party":
+            partyCommand.callCommand(interaction);
+            break;
+        case "teams":
+            teamsCommand.callCommand(interaction);
+            break;
+        default:
+            console.log(`Unknown command: ${commandName}`);
     }
 });
 
 // Button interaction listener
 client.on(Events.InteractionCreate, async (interaction) => {
     if (!interaction.isButton()) return;
-
-    const username = interaction.member?.displayName || interaction.user.username;
-
-    if (interaction.customId === "join_party") {
-        partyCommand.joinParty(interaction);
+    
+    switch (interaction.customId) {
+        case "join_party":
+            partyCommand.joinParty(interaction);
+            break;
+        case "join_teams":
+            teamsCommand.joinTeams(interaction);
+            break;
+        case "create_teams":
+            teamsCommand.createTeams(interaction);
+            break;
+        case "retry_teams":
+            teamsCommand.retryTeams(interaction);
+            break;
+        default:
+            console.log(`Unknown button call: ${interaction.customId}`);
     }
 });
 
