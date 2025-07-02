@@ -4,7 +4,8 @@
 
 ## ✨ Features
 
-- **`/party [max_players]`** – Starts an interaction box where users can join a party. Once **`max_players`** have joined, the bot notifies all participants.
+- **`/party [max_players]`** – Starts an interaction box where users can join a party. Once **`max_players`** have joined, the bot notifies all participants. (Default max_players: 5)
+- **`/teams [team_count]`** – Randomly generates and evenly split members who joins the team list into **`team_count`** teams. (Default team_count: 2)
 
 ## 🚀 Installation
 
