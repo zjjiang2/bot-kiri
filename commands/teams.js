@@ -2,11 +2,24 @@ import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
 
 const teamsTables = new Map(); 
 const teamsPromptMessages = new Map();
+const teamsRetryMessages = new Map();
 
 // Teams command call
 async function callCommand(interaction) {
 	const channelId = interaction.channelId;
     const teamCount = interaction.options.getInteger("team_count") || 2;
+
+	// If there's already a prompt message remove all buttons
+	const existingPrompt = teamsPromptMessages.get(channelId);
+	if (existingPrompt) {
+		await existingPrompt.edit({
+			components: [],
+		}).catch(console.error);
+
+		// Clear previous session state
+		teamsTables.delete(channelId);
+		teamsPromptMessages.delete(channelId);
+	}
 
 	const teamsTable = new Map();
     teamsTables.set(channelId, teamsTable);
@@ -29,36 +42,59 @@ async function callCommand(interaction) {
 			.setStyle(ButtonStyle.Primary),
 	);
 
-	const sent = await interaction.reply({
+	await interaction.reply({
 		embeds: [embed],
 		components: [row],
-		fetchReply: true,
 	});
 
+	const sent = await interaction.fetchReply();
 	sent.teamCount = teamCount;
 	teamsPromptMessages.set(channelId, sent);
 }
+
+// Check for stale command messages
+async function verifyTeamsSession(interaction) {
+	const channelId = interaction.channelId;
+	const currentPrompt = teamsPromptMessages.get(channelId);
+	const currentRetry = teamsRetryMessages.get(channelId);
+
+	const validMessageIds = [
+		currentPrompt?.id,
+		currentRetry?.id,
+	];
+
+	if (!validMessageIds.includes(interaction.message.id)) {
+
+		const message = await interaction.message.fetch();
+
+		await message.edit({ components: [] }).catch(console.error);
+
+		await interaction.reply({
+			content: `❗ This session has expired. Please use /teams again.`,
+			flags: 64,
+		});
+
+		return false; 
+	}
+
+	return true; 
+}
+
 
 // Join team button press
 async function joinTeams(interaction) {
 	const userId = interaction.user.id;
     const displayName = interaction.member?.displayName || interaction.user.username;
     const channelId = interaction.channelId;
-
 	const teamsTable = teamsTables.get(channelId);
     const teamsPromptMessage = teamsPromptMessages.get(channelId);
 
-	if (!teamsTable || !teamsPromptMessage) {
-        return interaction.reply({
-            content: `❗ No active teams in this channel. Start one with '/teams'.`,
-            ephemeral: true,
-        });
-    }
+	if (!(await verifyTeamsSession(interaction))) return;
 
 	if (teamsTable.has(displayName)) {
 		return interaction.reply({
 			content: `❗ You're already in the teams list, ${displayName}.`,
-			ephemeral: true,
+			flags: 64,
 		});
 	}
 
@@ -66,7 +102,7 @@ async function joinTeams(interaction) {
 
 	await interaction.reply({
 		content: `✅ ${displayName} joined the team generator!`,
-		ephemeral: true,
+		flags: 64,
 	});
 
 
@@ -106,18 +142,12 @@ async function createTeams(interaction) {
     const teamsPromptMessage = teamsPromptMessages.get(channelId);
 	const teamCount = teamsPromptMessage?.teamCount || 2;
 
-	// Guard state access
-	if (!teamsTable || !teamsPromptMessage) {
-		return interaction.reply({
-			content: `❗ This session has expired. Use /teams to start a new one.`,
-			ephemeral: true,
-		});
-	}
+	if (!(await verifyTeamsSession(interaction))) return;
 
 	if (teamsTable.size === 0) {
 		return interaction.reply({
 			content: "❗ No one has joined the team table yet!",
-			ephemeral: true,
+			flags: 64,
 		});
 	}
 
@@ -126,41 +156,43 @@ async function createTeams(interaction) {
 		.map((team, i) => `**Team ${i + 1}:** ${team.join(" & ")}`)
 		.join("\n");
 
-	const retryRow = new ActionRowBuilder().addComponents(
-		new ButtonBuilder()
-			.setCustomId("retry_teams")
-			.setLabel("🔁 Retry Teams")
-			.setStyle(ButtonStyle.Secondary)
-	);
+	await teamsPromptMessage.edit({
+		components: [],
+	}).catch(console.error);
 
-	await interaction.reply({
-		content: `👥 **Teams formed:**\n${teamMessages}`,
+	const retryButton = new ButtonBuilder()
+		.setCustomId("retry_teams")
+		.setLabel("🔁 Retry Teams")
+		.setStyle(ButtonStyle.Secondary);
+
+	const retryRow = new ActionRowBuilder().addComponents(retryButton);
+
+	const retryMessage = await interaction.reply({
+		embeds: [{
+			title: "👥 Teams Formed",
+			description: `**Teams:**\n${teamMessages}`,
+			color: 0x00b0f4,
+		}],
 		components: [retryRow],
+		fetchReply: true, // 👈 So we can store it
 	});
 
-	if (teamsPromptMessage) {
-		await teamsPromptMessage.delete().catch(console.error);
-	}
+	teamsRetryMessages.set(channelId, retryMessage);
 }
 
 // Retry button press
 async function retryTeams(interaction) {
 	const channelId = interaction.channelId;
 	const teamsTable = teamsTables.get(channelId);
-    const teamsPromptMessage = teamsPromptMessages.get(channelId);
-    const teamCount = teamsPromptMessage?.teamCount || 2;
+	const teamCount = teamsPromptMessages.get(channelId)?.teamCount || 2;
+	const teamsRetryMessage = teamsRetryMessages.get(channelId);
 
-	if (!teamsTable || !teamsPromptMessage) {
-		return interaction.reply({
-			content: `❗ This session has expired. Use /teams to start a new one.`,
-			ephemeral: true,
-		});
-	}
+	if (!(await verifyTeamsSession(interaction))) return;
 
 	if (teamsTable.size === 0) {
 		return interaction.reply({
 			content: "❗ No one is in the team list to reshuffle!",
-			ephemeral: true,
+			flags: 64,
 		});
 	}
 	
@@ -176,10 +208,16 @@ async function retryTeams(interaction) {
 			.setStyle(ButtonStyle.Secondary)
 	);
 
-	await interaction.reply({
-		content: `🔁 **Reshuffled Teams:**\n${teamMessages}`,
+	await teamsRetryMessage.edit({
+		embeds: [{
+			title: "👥 Teams Reformed",
+			description: `**Teams:**\n${teamMessages}`,
+			color: 0x00b0f4,
+		}],
 		components: [retryRow],
 	});
+
+	await interaction.deferUpdate(); // Clear button interaction
 }
 
 export default {

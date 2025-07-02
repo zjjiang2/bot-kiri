@@ -24,13 +24,15 @@ async function callCommand(interaction) {
             .setStyle(ButtonStyle.Success)
     );
 
-    const sent = await interaction.reply({
+    await interaction.reply({
         embeds: [embed],
         components: [row],
-        fetchReply: true,
     });
 
+    const sent = await interaction.fetchReply();
+
     sent.maxPlayers = maxPlayers;
+    
     partyPromptMessages.set(channelId, sent);
 }
 
