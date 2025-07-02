@@ -8,6 +8,19 @@ async function callCommand(interaction) {
     const channelId = interaction.channelId;
     const maxPlayers = interaction.options.getInteger("max_players") || 5;
 
+	// If there's already a prompt message remove all buttons
+	const existingPrompt = partyPromptMessages.get(channelId);
+	if (existingPrompt) {
+		await existingPrompt.edit({
+			components: [],
+		}).catch(console.error);
+
+		// Clear previous session state
+		partyTables.delete(channelId);
+		partyPromptMessages.delete(channelId);
+	}
+
+
     const partyTable = new Map();
     partyTables.set(channelId, partyTable);
 
@@ -32,8 +45,34 @@ async function callCommand(interaction) {
     const sent = await interaction.fetchReply();
 
     sent.maxPlayers = maxPlayers;
-    
+
     partyPromptMessages.set(channelId, sent);
+}
+
+// Check for stale command messages
+async function verifyPartySession(interaction) {
+	const channelId = interaction.channelId;
+	const currentPrompt = partyPromptMessages.get(channelId);
+
+	const validMessageIds = [
+		currentPrompt?.id,
+	];
+
+	if (!validMessageIds.includes(interaction.message.id)) {
+
+		const message = await interaction.message.fetch();
+
+		await message.edit({ components: [] }).catch(console.error);
+
+		await interaction.reply({
+			content: `❗ This session has expired. Please use /party again.`,
+			flags: 64,
+		});
+
+		return false; 
+	}
+
+	return true; 
 }
 
 // Join party button press
@@ -45,17 +84,12 @@ async function joinParty(interaction) {
     const partyTable = partyTables.get(channelId);
     const partyPromptMessage = partyPromptMessages.get(channelId);
 
-    if (!partyTable || !partyPromptMessage) {
-        return interaction.reply({
-            content: `❗ No active party in this channel. Start one with '/party'.`,
-            ephemeral: true,
-        });
-    }
+    if (!(await verifyPartySession(interaction))) return;
 
     if (partyTable.has(userId)) {
         return interaction.reply({
             content: `❗ You're already in the party list, ${displayName}.`,
-            ephemeral: true,
+            flags: 64,
         });
     }
 
@@ -64,7 +98,7 @@ async function joinParty(interaction) {
 
     await interaction.reply({
         content: `✅ ${displayName} has joined the party.`,
-        ephemeral: true,
+        flags: 64,
     });
 
     const participantList = Array.from(partyTable.entries())
