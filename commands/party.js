@@ -65,7 +65,7 @@ async function verifyPartySession(interaction) {
 		await message.edit({ components: [] }).catch(console.error);
 
 		await interaction.reply({
-			content: `❗ This session has expired. Please use /party again.`,
+			content: `❗ This session has expired. Please use '/party' again.`,
 			flags: 64,
 		});
 

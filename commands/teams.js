@@ -70,7 +70,7 @@ async function verifyTeamsSession(interaction) {
 		await message.edit({ components: [] }).catch(console.error);
 
 		await interaction.reply({
-			content: `❗ This session has expired. Please use /teams again.`,
+			content: `❗ This session has expired. Please use '/teams' again.`,
 			flags: 64,
 		});
 
@@ -104,7 +104,6 @@ async function joinTeams(interaction) {
 		content: `✅ ${displayName} joined the team generator!`,
 		flags: 64,
 	});
-
 
 	const participantList = Array.from(teamsTable.entries())
 		.map(([_, name], i) => `${i + 1}. ${name}`)
@@ -151,14 +150,14 @@ async function createTeams(interaction) {
 		});
 	}
 
+	await teamsPromptMessage.edit({
+		components: [],
+	}).catch(console.error);
+
 	const formedTeams = generateTeams(teamsTable, teamCount);
 	const teamMessages = formedTeams
 		.map((team, i) => `**Team ${i + 1}:** ${team.join(" & ")}`)
 		.join("\n");
-
-	await teamsPromptMessage.edit({
-		components: [],
-	}).catch(console.error);
 
 	const retryButton = new ButtonBuilder()
 		.setCustomId("retry_teams")
@@ -171,10 +170,10 @@ async function createTeams(interaction) {
 		embeds: [{
 			title: "👥 Teams Formed",
 			description: `**Teams:**\n${teamMessages}`,
-			color: 0x00b0f4,
+			color: 0xff0000,
 		}],
 		components: [retryRow],
-		fetchReply: true, // 👈 So we can store it
+		fetchReply: true,
 	});
 
 	teamsRetryMessages.set(channelId, retryMessage);
@@ -212,7 +211,7 @@ async function retryTeams(interaction) {
 		embeds: [{
 			title: "👥 Teams Reformed",
 			description: `**Teams:**\n${teamMessages}`,
-			color: 0x00b0f4,
+			color: 0xff0000,
 		}],
 		components: [retryRow],
 	});
