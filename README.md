@@ -6,6 +6,8 @@
 
 - **`/party [max_players]`** – Starts an interaction box where users can join a party. Once **`max_players`** have joined, the bot notifies all participants. (Default max_players: 5)
 - **`/teams [team_count]`** – Randomly generates and evenly split members who joins the team list into **`team_count`** teams. (Default team_count: 2)
+- **`/roll [roll_range]`** – Returns a number between 1 and **`roll_range`**. (Default roll_range: 100)
+- **`/grouproll [roll_range]`** – Opens a group roll panel where users can join. Once the roll has started, all participants roll a random number up to **`roll_range`**. The winner is the one who rolled the highest. (Default roll_range: 100)
 
 ## 🚀 Installation
 
