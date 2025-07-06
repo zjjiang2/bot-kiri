@@ -7,8 +7,9 @@ const rollRetryMessages = new Map();
 // Roll command call
 async function callCommand(interaction) {
 	const displayName = interaction.member?.displayName || interaction.user.username;
+	const maxRoll = interaction.options.getInteger("roll_range") || 100;
 	
-	const dice = Math.floor(Math.random() * maxDice) + 1;
+	const dice = Math.floor(Math.random() * maxRoll) + 1;
 
 	await interaction.reply({
 		content: `🎲 ${displayName} rolled: **${dice}**`,
