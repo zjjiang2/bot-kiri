@@ -91,12 +91,12 @@ async function joinTeams(interaction) {
 
 	if (!(await verifyTeamsSession(interaction))) return;
 
-	if (teamsTable.has(displayName)) {
-		return interaction.reply({
-			content: `❗ You're already in the teams list, ${displayName}.`,
-			flags: 64,
-		});
-	}
+	if (teamsTable.has(userId)) {
+        return interaction.reply({
+            content: `❗ You're already in the teams list, ${displayName}.`,
+            flags: 64,
+        });
+    }
 
     teamsTable.set(userId, displayName);
 

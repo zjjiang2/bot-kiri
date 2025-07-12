@@ -124,7 +124,7 @@ async function joinRoll(interaction) {
 
 	if (!(await verifyRollSession(interaction))) return;
 
-	if (rollTable.has(displayName)) {
+	if (rollTable.has(userId)) {
 		return interaction.reply({
 			content: `❗ You're already in the group list, ${displayName}.`,
 			flags: 64,
